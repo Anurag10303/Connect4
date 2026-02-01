@@ -1,8 +1,7 @@
 package game
 
-// BotMove chooses a column for the bot
 func (g *Game) BotMove() int {
-	// 1️⃣ Try to win
+	// Try to win
 	for col := 0; col < 7; col++ {
 		tmp := *g
 		ok, row := tmp.DropDisc(col)
@@ -11,12 +10,10 @@ func (g *Game) BotMove() int {
 		}
 	}
 
-	// 2️⃣ Try to block opponent
-	opp := g.Turn
-	if opp == 1 {
+	// Try to block opponent
+	opp := 1
+	if g.Turn == 1 {
 		opp = 2
-	} else {
-		opp = 1
 	}
 
 	for col := 0; col < 7; col++ {
@@ -28,11 +25,12 @@ func (g *Game) BotMove() int {
 		}
 	}
 
-	// 3️⃣ Fallback — center preference
+	// Prefer center
 	if g.Board[0][3] == 0 {
 		return 3
 	}
 
+	// Fallback
 	for col := 0; col < 7; col++ {
 		if g.Board[0][col] == 0 {
 			return col

@@ -1,6 +1,5 @@
 package game
 
-// CheckWinner checks if the last move at (row, col) caused a win.
 func (g *Game) CheckWinner(row, col int) bool {
 	player := g.Board[row][col]
 	if player == 0 {
@@ -8,16 +7,16 @@ func (g *Game) CheckWinner(row, col int) bool {
 	}
 
 	directions := [][]int{
-		{0, 1},   // horizontal
-		{1, 0},   // vertical
-		{1, 1},   // diagonal down-right
-		{1, -1},  // diagonal down-left
+		{0, 1},  // horizontal
+		{1, 0},  // vertical
+		{1, 1},  // diagonal ↘
+		{1, -1}, // diagonal ↗
 	}
 
 	for _, d := range directions {
-		count := 1 // count the current disc
+		count := 1
 
-		// forward direction
+		// forward
 		r, c := row+d[0], col+d[1]
 		for r >= 0 && r < 6 && c >= 0 && c < 7 && g.Board[r][c] == player {
 			count++
@@ -25,7 +24,7 @@ func (g *Game) CheckWinner(row, col int) bool {
 			c += d[1]
 		}
 
-		// backward direction
+		// backward
 		r, c = row-d[0], col-d[1]
 		for r >= 0 && r < 6 && c >= 0 && c < 7 && g.Board[r][c] == player {
 			count++

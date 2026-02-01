@@ -1,8 +1,8 @@
 package messages
 
-type StartMessage struct {
+type StateMessage struct {
 	Type   string    `json:"type"`
-	GameID string    `json:"gameId"`
 	Board  [6][7]int `json:"board"`
 	Turn   int       `json:"turn"`
+	Winner int       `json:"winner"`
 }

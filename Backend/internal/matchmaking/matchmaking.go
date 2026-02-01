@@ -28,7 +28,6 @@ func Join(username string, conn *websocket.Conn) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	// No waiting player → put this one in queue
 	if waiting == nil {
 		log.Println("No waiting player, putting in queue:", username)
 
@@ -48,7 +47,6 @@ func Join(username string, conn *websocket.Conn) {
 		return
 	}
 
-	// Match found
 	log.Println("Match found:", waiting.Username, "vs", username)
 
 	waiting.Timer.Stop()
@@ -72,17 +70,23 @@ func startPlayerGame(p1, p2 *WaitingPlayer) {
 	store.AddConn(gameID, p1.Conn)
 	store.AddConn(gameID, p2.Conn)
 
-	startMsg := messages.StartMessage{
-		Type:   "START",
-		GameID: gameID,
-		Board:  g.Board,
-		Turn:   g.Turn,
-	}
+	p1.Conn.WriteJSON(messages.StartMessage{
+		Type:     "START",
+		GameID:   gameID,
+		Board:    g.Board,
+		Turn:     g.Turn,
+		PlayerNo: 1,
+	})
 
-	p1.Conn.WriteJSON(startMsg)
-	p2.Conn.WriteJSON(startMsg)
+	p2.Conn.WriteJSON(messages.StartMessage{
+		Type:     "START",
+		GameID:   gameID,
+		Board:    g.Board,
+		Turn:     g.Turn,
+		PlayerNo: 2,
+	})
 
-	log.Println("Player game started:", gameID)
+	log.Println("Player vs Player game started:", gameID)
 }
 
 func startBotGame(p *WaitingPlayer) {
@@ -102,14 +106,42 @@ func startBotGame(p *WaitingPlayer) {
 	store.SaveGame(gameID, g)
 	store.AddConn(gameID, p.Conn)
 
-	startMsg := messages.StartMessage{
-		Type:   "START",
-		GameID: gameID,
-		Board:  g.Board,
-		Turn:   g.Turn,
-	}
-
-	p.Conn.WriteJSON(startMsg)
+	// Send START to human
+	p.Conn.WriteJSON(messages.StartMessage{
+		Type:     "START",
+		GameID:   gameID,
+		Board:    g.Board,
+		Turn:     g.Turn,
+		PlayerNo: 1,
+	})
 
 	log.Println("Bot game started:", gameID)
+
+	// 🤖 BOT MUST PLAY IF IT STARTS
+	if g.Turn == 2 {
+		go func(gameID string, g *game.Game) {
+			time.Sleep(500 * time.Millisecond)
+
+			botCol := g.BotMove()
+			ok, row := g.DropDisc(botCol)
+			if !ok {
+				return
+			}
+
+			g.CheckWinner(row, botCol)
+
+			state := messages.StateMessage{
+				Type:   "STATE",
+				Board:  g.Board,
+				Turn:   g.Turn,
+				Winner: g.Winner,
+			}
+
+			for _, c := range store.GetConns(gameID) {
+				c.WriteJSON(state)
+			}
+
+			log.Println("BOT FIRST MOVE SENT:", botCol)
+		}(gameID, g)
+	}
 }

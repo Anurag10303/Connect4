@@ -1,7 +1,6 @@
 package game
 
 type Game struct {
-	ID      string
 	Player1 string
 	Player2 string
 	Board   [6][7]int
@@ -17,8 +16,13 @@ func NewGame(p1, p2 string) *Game {
 	}
 }
 
-// DropDisc drops a disc in a column.
-// Returns false if move is invalid.
+func (g *Game) CurrentPlayerUsername() string {
+	if g.Turn == 1 {
+		return g.Player1
+	}
+	return g.Player2
+}
+
 func (g *Game) DropDisc(col int) (bool, int) {
 	if col < 0 || col > 6 {
 		return false, -1
@@ -30,7 +34,6 @@ func (g *Game) DropDisc(col int) (bool, int) {
 
 			placedRow := row
 
-			// switch turn
 			if g.Turn == 1 {
 				g.Turn = 2
 			} else {
@@ -40,7 +43,5 @@ func (g *Game) DropDisc(col int) (bool, int) {
 			return true, placedRow
 		}
 	}
-
 	return false, -1
 }
-
