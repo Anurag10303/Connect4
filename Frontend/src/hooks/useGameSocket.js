@@ -6,20 +6,22 @@ export function useGameSocket() {
   const [username, setUsername] = useState(null);
   const [playerNo, setPlayerNo] = useState(null);
   const playerNoRef = useRef(null);
+
   const [gameId, setGameId] = useState(null);
   const [board, setBoard] = useState(createEmptyBoard());
   const [turn, setTurn] = useState(null);
-  const [winner, setWinner] = useState(null);
+  const [winner, setWinner] = useState(0);
   const [status, setStatus] = useState("Not connected");
   const [leaderboard, setLeaderboard] = useState({});
 
+  // -------- LEADERBOARD --------
   const fetchLeaderboard = async () => {
     try {
       const res = await fetch("http://localhost:8080/leaderboard");
       const data = await res.json();
-      setLeaderboard(data);
-    } catch (err) {
-      console.error("Leaderboard fetch failed", err);
+      setLeaderboard(data || {});
+    } catch {
+      setLeaderboard({});
     }
   };
 
@@ -27,6 +29,7 @@ export function useGameSocket() {
     fetchLeaderboard();
   }, []);
 
+  // -------- CONNECT --------
   const connect = (name) => {
     const socket = new WebSocket("ws://localhost:8080/ws");
 
@@ -45,8 +48,10 @@ export function useGameSocket() {
         setTurn(msg.turn);
         setPlayerNo(msg.playerNo);
         playerNoRef.current = msg.playerNo;
-        setWinner(null);
-        setStatus(msg.turn === msg.playerNo ? "Your turn" : "Opponent’s turn");
+
+        // 🔑 HARD RESET (THIS FIXES YOUR BUG)
+        setWinner(0);
+        setStatus(msg.turn === msg.playerNo ? "Your turn" : "Opponent's turn");
       }
 
       if (msg.type === "STATE") {
@@ -54,16 +59,14 @@ export function useGameSocket() {
         setTurn(msg.turn);
         setWinner(msg.winner);
 
-        if (msg.winner) {
+        if (msg.winner !== 0) {
           fetchLeaderboard();
           setStatus(
-            msg.winner === playerNoRef.current
-              ? "🎉 Game Over — You Won!"
-              : "💀 Game Over — You Lost",
+            msg.winner === playerNoRef.current ? "You won!" : "You lost!",
           );
         } else {
           setStatus(
-            msg.turn === playerNoRef.current ? "Your turn" : "Opponent’s turn",
+            msg.turn === playerNoRef.current ? "Your turn" : "Opponent's turn",
           );
         }
       }
@@ -76,8 +79,9 @@ export function useGameSocket() {
     setWs(socket);
   };
 
+  // -------- MOVE --------
   const makeMove = (column) => {
-    if (!ws || !gameId || winner) return;
+    if (!ws || !gameId || winner !== 0) return;
     if (turn !== playerNoRef.current) return;
 
     ws.send(
@@ -98,7 +102,7 @@ export function useGameSocket() {
     gameId,
     username,
     playerNo,
-    isMyTurn: turn === playerNo,
+    isMyTurn: gameId && turn === playerNo,
     leaderboard,
     connect,
     makeMove,

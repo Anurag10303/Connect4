@@ -9,8 +9,11 @@ export default function GamePage() {
   const [hoverCol, setHoverCol] = useState(null);
   const game = useGameSocket();
 
-  const isWin = game.winner && game.winner === game.playerNo;
-  const isLoss = game.winner && game.winner !== game.playerNo;
+  const isWin =
+    game.gameId && game.winner !== 0 && game.winner === game.playerNo;
+
+  const isLoss =
+    game.gameId && game.winner !== 0 && game.winner !== game.playerNo;
 
   return (
     <div
@@ -18,43 +21,30 @@ export default function GamePage() {
         padding: 20,
         maxWidth: 520,
         margin: "0 auto",
-        fontFamily: "sans-serif",
+        fontFamily: "system-ui, sans-serif",
       }}
     >
-      <h1
-        style={{
-          textAlign: "center",
-          fontSize: 32,
-          letterSpacing: 1,
-          marginBottom: 4,
-        }}
-      >
+      <h1 style={{ textAlign: "center", fontSize: 32, marginBottom: 4 }}>
         4 in a Row
       </h1>
 
-      <p
-        style={{
-          textAlign: "center",
-          color: "#666",
-          marginBottom: 18,
-          fontSize: 14,
-        }}
-      >
+      <p style={{ textAlign: "center", color: "#666", marginBottom: 18 }}>
         Connect four discs to win
       </p>
 
-      {/* 🟢 WIN / 🔴 LOSS BANNER */}
-      {game.winner && (
+      {/* 🏆 RESULT BANNER */}
+      {game.gameId && game.winner !== 0 && (
         <div
           style={{
-            padding: "14px 16px",
+            padding: "14px",
             marginBottom: 16,
-            borderRadius: 8,
+            borderRadius: 10,
             textAlign: "center",
             fontSize: 18,
             fontWeight: "bold",
             color: "white",
             background: isWin ? "#2e7d32" : "#c62828",
+            boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
           }}
         >
           {isWin ? "🎉 YOU WON THE GAME!" : "💀 YOU LOST THE GAME"}
@@ -75,21 +65,20 @@ export default function GamePage() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            style={{ padding: 6, fontSize: 14 }}
+            style={{ padding: 6 }}
           />
           <button onClick={() => game.connect(username)}>Join Game</button>
         </div>
       )}
 
-      {/* STATUS TEXT */}
       <Status text={game.status} />
 
       {/* TURN INDICATOR */}
-      {game.gameId && !game.winner && (
+      {game.gameId && game.winner === 0 && (
         <div
           style={{
-            margin: "10px 0",
             textAlign: "center",
+            marginBottom: 10,
             fontWeight: "bold",
             color: game.isMyTurn ? "#2e7d32" : "#555",
           }}
@@ -98,19 +87,23 @@ export default function GamePage() {
         </div>
       )}
 
-      {/* BOARD (FADED WHEN NOT YOUR TURN) */}
+      {/* BOARD WRAPPER */}
       <div
         style={{
-          opacity: !game.gameId || game.winner || game.isMyTurn ? 1 : 0.6,
-          transition: "opacity 0.2s ease",
-          pointerEvents:
-            !game.gameId || game.winner || game.isMyTurn ? "auto" : "none",
+          margin: "0 auto",
+          width: "fit-content",
+          background: "#0d47a1",
+          padding: 14,
+          borderRadius: 12,
+          boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+          opacity: game.isMyTurn || game.winner !== 0 ? 1 : 0.6,
+          pointerEvents: game.isMyTurn || game.winner !== 0 ? "auto" : "none",
         }}
       >
         <Board
           board={game.board}
           onColumnClick={game.makeMove}
-          disabled={!game.gameId || game.winner || !game.isMyTurn}
+          disabled={!game.isMyTurn || game.winner !== 0}
           hoverCol={hoverCol}
           setHoverCol={setHoverCol}
           turn={game.turn}
@@ -118,22 +111,12 @@ export default function GamePage() {
       </div>
 
       {/* NEW GAME */}
-      {game.gameId && game.winner && (
+      {game.gameId && game.winner !== 0 && (
         <div style={{ textAlign: "center", marginTop: 16 }}>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: "8px 16px",
-              fontSize: 14,
-              cursor: "pointer",
-            }}
-          >
-            New Game
-          </button>
+          <button onClick={() => window.location.reload()}>New Game</button>
         </div>
       )}
 
-      {/* LEADERBOARD */}
       <div style={{ marginTop: 28 }}>
         <Leaderboard data={game.leaderboard} />
       </div>

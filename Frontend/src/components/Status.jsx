@@ -1,13 +1,13 @@
 export default function Status({ text }) {
-  // Prevent rendering numbers / empty values
-  if (!text || typeof text !== "string") return null;
+  if (!text) return null;
 
   return (
     <p
       style={{
         textAlign: "center",
-        fontWeight: "bold",
-        margin: "6px 0",
+        margin: "8px 0",
+        fontWeight: 600,
+        color: "#444",
       }}
     >
       {text}
