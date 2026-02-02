@@ -37,6 +37,9 @@ func runMigrations(db *sql.DB) {
 		username TEXT NOT NULL,
 		wins INT DEFAULT 0
 	);
+
+	ALTER TABLE leaderboard
+	ADD CONSTRAINT leaderboard_username_unique UNIQUE (username);
 	`
 	if _, err := db.Exec(query); err != nil {
 		log.Fatal("migration failed:", err)
