@@ -24,25 +24,25 @@ Supports player vs player, player vs bot, and a persistent leaderboard backed by
 📱 Responsive & clean UI
 
 ## 🛠 Tech Stack
-### Frontend
+### 1. Frontend
 
-React (Vite)
+• React (Vite)
 
-WebSockets
+• WebSockets
 
-JavaScript
+• JavaScript
 
-HTML / CSS
+• HTML / CSS
 
-### Backend
+### 2. Backend
 
-Go (Golang)
+• Go (Golang)
 
-Gorilla WebSocket
+• Gorilla WebSocket
 
-PostgreSQL
+• PostgreSQL
 
-Railway (deployment)
+• Railway (deployment)
 
 ## 📁 Project Structure
 
@@ -68,17 +68,18 @@ Connect4/
 ```
 
 ## ⚙️ Environment Variables
-### Backend (Railway)
+### 1. Backend (Railway)
 
 Set the following variable in Railway → Variables:
 
 DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DBNAME
 
-#### Frontend (Vercel)
+### 2. Frontend (Vercel)
 
 Set these variables in Vercel → Environment Variables:
 
 VITE_API_URL=https://connect4-production-d2c5.up.railway.app
+
 VITE_WS_URL=wss://connect4-production-d2c5.up.railway.app
 
 ⚠️ wss:// is mandatory for WebSockets over HTTPS.
@@ -86,7 +87,9 @@ VITE_WS_URL=wss://connect4-production-d2c5.up.railway.app
 ## 🧑‍💻 Run Locally
 #### 1️⃣ Backend
 cd backend
+
 go mod tidy
+
 go run cmd/server/main.go
 
 Backend runs at:
@@ -95,7 +98,9 @@ http://localhost:8080
 ```
 #### 2️⃣ Frontend
 cd frontend
+
 npm install
+
 npm run dev
 
 #### Frontend runs at:
@@ -111,60 +116,60 @@ VITE_WS_URL=ws://localhost:8080
 ```
 ## 🎮 How to Play
 
-Enter a username and join
+• Enter a username and join
 
-Wait for another player or bot
+• Wait for another player or bot
 
-Take turns dropping discs
+• Take turns dropping discs
 
-First to connect 4 discs wins
+• First to connect 4 discs wins
 
-Results update the leaderboard automatically
+• Results update the leaderboard automatically
 
 ## 🏆 Leaderboard
 
-Stores total wins per player
+• Stores total wins per player
 
-Persists across server restarts
+• Persists across server restarts
 
-Backed by PostgreSQL
+• Backed by PostgreSQL
 
-Excludes bot wins
+• Excludes bot wins
 
 ## 🚀 Deployment
-### Backend
+### 1. Backend
 
-Deployed on Railway
+• Deployed on Railway
 
-Uses Railway PostgreSQL
+• Uses Railway PostgreSQL
 
-Auto-deploys from GitHub
+• Auto-deploys from GitHub
 
-### Frontend
+### 2. Frontend
 
-Deployed on Vercel
+• Deployed on Vercel
 
-Environment-based API & WS URLs
+• Environment-based API & WS URLs
 
 ## 🔒 Security Notes
 
-.env files are not committed
+• .env files are not committed
 
-Database credentials stored securely
+• Database credentials stored securely
 
-Server enforces turn validation
+• Server enforces turn validation
 
 ## 📌 Future Improvements
 
-Draw detection
+• Draw detection
 
-Player avatars
+• Player avatars
 
-Ranked matchmaking
+• Ranked matchmaking
 
-Spectator mode
+• Spectator mode
 
-Animations & sound effects
+• Animations & sound effects
 
 ## 👤 Author
 
