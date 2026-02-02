@@ -1,7 +1,5 @@
 package store
 
-import "database/sql"
-
 // AddWin increments win count for a player (UPSERT)
 func AddWin(username string) error {
 	_, err := DB.Exec(`
