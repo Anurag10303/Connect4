@@ -25,7 +25,22 @@ func InitDB() {
 	if err := db.Ping(); err != nil {
 		log.Fatal(err)
 	}
-
+	runMigrations(db)
 	DB = db
 	log.Println("PostgreSQL connected")
+}
+
+func runMigrations(db *sql.DB) {
+	query := `
+	CREATE TABLE IF NOT EXISTS leaderboard (
+		id SERIAL PRIMARY KEY,
+		username TEXT NOT NULL,
+		wins INT DEFAULT 0
+	);
+	`
+	if _, err := db.Exec(query); err != nil {
+		log.Fatal("migration failed:", err)
+	}
+
+	log.Println("DB migrations applied")
 }
