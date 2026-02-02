@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { createEmptyBoard } from "../utils/Board.js";
 
+// 🔑 ENV VARS (WORKS LOCAL + PROD)
+const API_URL = import.meta.env.VITE_API_URL;
+const WS_URL = import.meta.env.VITE_WS_URL;
+
 export function useGameSocket() {
   const [ws, setWs] = useState(null);
   const [username, setUsername] = useState(null);
@@ -14,13 +18,15 @@ export function useGameSocket() {
   const [status, setStatus] = useState("Not connected");
   const [leaderboard, setLeaderboard] = useState({});
 
-  // -------- LEADERBOARD --------
+  /* ---------------- LEADERBOARD ---------------- */
+
   const fetchLeaderboard = async () => {
     try {
-      const res = await fetch("http://localhost:8080/leaderboard");
+      const res = await fetch(`${API_URL}/leaderboard`);
       const data = await res.json();
       setLeaderboard(data || {});
-    } catch {
+    } catch (err) {
+      console.error("Leaderboard fetch failed", err);
       setLeaderboard({});
     }
   };
@@ -29,9 +35,10 @@ export function useGameSocket() {
     fetchLeaderboard();
   }, []);
 
-  // -------- CONNECT --------
+  /* ---------------- CONNECT ---------------- */
+
   const connect = (name) => {
-    const socket = new WebSocket("ws://localhost:8080/ws");
+    const socket = new WebSocket(`${WS_URL}/ws`);
 
     socket.onopen = () => {
       setUsername(name);
@@ -49,7 +56,7 @@ export function useGameSocket() {
         setPlayerNo(msg.playerNo);
         playerNoRef.current = msg.playerNo;
 
-        // 🔑 HARD RESET (THIS FIXES YOUR BUG)
+        // 🔑 HARD RESET
         setWinner(0);
         setStatus(msg.turn === msg.playerNo ? "Your turn" : "Opponent's turn");
       }
@@ -79,7 +86,8 @@ export function useGameSocket() {
     setWs(socket);
   };
 
-  // -------- MOVE --------
+  /* ---------------- MOVE ---------------- */
+
   const makeMove = (column) => {
     if (!ws || !gameId || winner !== 0) return;
     if (turn !== playerNoRef.current) return;
