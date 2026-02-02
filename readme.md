@@ -70,40 +70,38 @@ Connect4/
 ## ⚙️ Environment Variables
 ### 1. Backend (Railway)
 
-Set the following variable in Railway → Variables:
-
+1. Set the following variable in Railway → Variables:
+```
 DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DBNAME
+```
 
 ### 2. Frontend (Vercel)
 
-Set these variables in Vercel → Environment Variables:
-
+1. Set these variables in Vercel → Environment Variables:
+```
 VITE_API_URL=https://connect4-production-d2c5.up.railway.app
-
 VITE_WS_URL=wss://connect4-production-d2c5.up.railway.app
-
+```
 ⚠️ wss:// is mandatory for WebSockets over HTTPS.
 
 ## 🧑‍💻 Run Locally
 #### 1️⃣ Backend
+```
 cd backend
-
 go mod tidy
-
 go run cmd/server/main.go
-
-Backend runs at:
+```
+###### Backend runs at:
 ```
 http://localhost:8080
 ```
-#### 2️⃣ Frontend
+### 2️⃣ Frontend
+```
 cd frontend
-
 npm install
-
 npm run dev
-
-#### Frontend runs at:
+```
+##### Frontend runs at:
 ```
 http://localhost:5173
 ```
@@ -174,9 +172,8 @@ VITE_WS_URL=ws://localhost:8080
 ## 👤 Author
 
 Anurag
+
 Computer Science Student
+
 Full-Stack Developer (Go + React)
 
-## ⭐️ If you like this project
-
-#### Give it a ⭐ on GitHub — it helps a lot!
