@@ -5,7 +5,7 @@ Supports player vs player, player vs bot, and a persistent leaderboard backed by
 
 ## 🚀 Live Demo:
 
-#### Frontend: https://<your-vercel-url>.vercel.app
+#### Frontend: https://connect4-hazel-ten.vercel.app/
 
 #### Backend: https://connect4-production-d2c5.up.railway.app
 
@@ -24,7 +24,7 @@ Supports player vs player, player vs bot, and a persistent leaderboard backed by
 📱 Responsive & clean UI
 
 ## 🛠 Tech Stack
-#### Frontend
+### Frontend
 
 React (Vite)
 
@@ -34,7 +34,7 @@ JavaScript
 
 HTML / CSS
 
-#### Backend
+### Backend
 
 Go (Golang)
 
@@ -74,7 +74,7 @@ Set the following variable in Railway → Variables:
 
 DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DBNAME
 
-##### Frontend (Vercel)
+#### Frontend (Vercel)
 
 Set these variables in Vercel → Environment Variables:
 
@@ -84,7 +84,7 @@ VITE_WS_URL=wss://connect4-production-d2c5.up.railway.app
 ⚠️ wss:// is mandatory for WebSockets over HTTPS.
 
 ## 🧑‍💻 Run Locally
-##### 1️⃣ Backend
+#### 1️⃣ Backend
 cd backend
 go mod tidy
 go run cmd/server/main.go
@@ -93,7 +93,7 @@ Backend runs at:
 ```
 http://localhost:8080
 ```
-##### 2️⃣ Frontend
+#### 2️⃣ Frontend
 cd frontend
 npm install
 npm run dev
@@ -102,9 +102,9 @@ npm run dev
 ```
 http://localhost:5173
 ```
-### Local .env (Frontend)
+#### Local .env (Frontend)
 
-#### Create frontend/.env:
+##### Create frontend/.env:
 ```
 VITE_API_URL=http://localhost:8080
 VITE_WS_URL=ws://localhost:8080
@@ -132,7 +132,7 @@ Backed by PostgreSQL
 Excludes bot wins
 
 ## 🚀 Deployment
-#### Backend
+### Backend
 
 Deployed on Railway
 
@@ -140,7 +140,7 @@ Uses Railway PostgreSQL
 
 Auto-deploys from GitHub
 
-#### Frontend
+### Frontend
 
 Deployed on Vercel
 
