@@ -2,20 +2,37 @@ import { useState } from "react";
 import { useGameSocket } from "../hooks/useGameSocket";
 import Board from "../components/Board";
 import Status from "../components/Status";
+import Leaderboard from "../components/Leaderboard";
 
 export default function GamePage() {
   const [username, setUsername] = useState("");
   const [hoverCol, setHoverCol] = useState(null);
-
   const game = useGameSocket();
 
-  const startNewGame = () => {
-    window.location.reload();
-  };
+  const isWin = game.winner && game.winner === game.playerNo;
+  const isLoss = game.winner && game.winner !== game.playerNo;
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, maxWidth: 500, margin: "0 auto" }}>
       <h1>4 in a Row</h1>
+
+      {/* 🔴 WIN / LOSS BANNER */}
+      {game.winner && (
+        <div
+          style={{
+            padding: "14px 16px",
+            marginBottom: 14,
+            borderRadius: 8,
+            textAlign: "center",
+            fontSize: 18,
+            fontWeight: "bold",
+            color: "white",
+            background: isWin ? "#2e7d32" : "#c62828",
+          }}
+        >
+          {isWin ? "🎉 YOU WON THE GAME!" : "💀 YOU LOST THE GAME"}
+        </div>
+      )}
 
       {!game.gameId && (
         <div style={{ marginBottom: 12 }}>
@@ -38,23 +55,17 @@ export default function GamePage() {
       <Board
         board={game.board}
         onColumnClick={game.makeMove}
-        disabled={!game.gameId || game.winner}
+        disabled={!game.gameId || game.winner || !game.isMyTurn}
         hoverCol={hoverCol}
         setHoverCol={setHoverCol}
         turn={game.turn}
       />
 
-      {game.turn && !game.winner && (
-        <p style={{ marginTop: 10 }}>
-          {game.turn === 1 ? "Your turn (X)" : "Opponent's turn (O)"}
-        </p>
-      )}
-
       {game.gameId && (
         <button
-          onClick={startNewGame}
+          onClick={() => window.location.reload()}
           style={{
-            marginTop: 15,
+            marginTop: 16,
             padding: "8px 16px",
             fontSize: 14,
             cursor: "pointer",
@@ -64,11 +75,7 @@ export default function GamePage() {
         </button>
       )}
 
-      <div style={{ marginTop: 12 }}>
-        <strong>Legend:</strong>{" "}
-        <span style={{ color: "#e53935", marginLeft: 8 }}>X = Player 1</span>{" "}
-        <span style={{ color: "#fbc02d", marginLeft: 8 }}>O = Player 2</span>
-      </div>
+      <Leaderboard data={game.leaderboard} />
     </div>
   );
 }

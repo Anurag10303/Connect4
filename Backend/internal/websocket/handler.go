@@ -2,10 +2,10 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
+	"connect4/internal/game"
 	"connect4/internal/matchmaking"
 	"connect4/internal/store"
 
@@ -33,94 +33,103 @@ type StateMessage struct {
 func HandleWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("upgrade error:", err)
 		return
 	}
 	defer conn.Close()
 
-	log.Println("client connected")
-
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("read error:", err)
 			return
 		}
 
 		var m Message
 		if err := json.Unmarshal(msg, &m); err != nil {
-			log.Println("invalid json")
 			continue
 		}
 
 		switch m.Type {
-
 		case "JOIN":
-			log.Println("User joined:", m.Username)
 			matchmaking.Join(m.Username, conn)
 
 		case "MOVE":
-			g, ok := store.GetGame(m.GameID)
-			if !ok {
-				log.Println("invalid game id")
-				continue
-			}
-
-			// 🔒 Enforce turn
-			if m.Username != g.CurrentPlayerUsername() {
-				log.Println("Rejected move: not player's turn")
-				continue
-			}
-
-			okMove, row := g.DropDisc(m.Column)
-			if !okMove {
-				log.Println("Invalid move:", m.Column)
-				continue
-			}
-
-			g.CheckWinner(row, m.Column)
-
-			// 🔊 Broadcast HUMAN move
-			humanState := StateMessage{
-				Type:   "STATE",
-				Board:  g.Board,
-				Turn:   g.Turn,
-				Winner: g.Winner,
-			}
-
-			for _, c := range store.GetConns(m.GameID) {
-				c.WriteJSON(humanState)
-			}
-
-			// 🤖 BOT MOVE (ASYNC + DELAY)
-			if g.Player2 == "BOT" && g.Turn == 2 && g.Winner == 0 {
-
-				go func(gameID string) {
-					// small delay so UI can render human move
-					time.Sleep(500 * time.Millisecond)
-
-					botCol := g.BotMove()
-					okBot, botRow := g.DropDisc(botCol)
-					if !okBot {
-						return
-					}
-
-					g.CheckWinner(botRow, botCol)
-
-					botState := StateMessage{
-						Type:   "STATE",
-						Board:  g.Board,
-						Turn:   g.Turn,
-						Winner: g.Winner,
-					}
-
-					for _, c := range store.GetConns(gameID) {
-						c.WriteJSON(botState)
-					}
-
-					log.Println("BOT MOVE SENT:", botCol)
-				}(m.GameID)
-			}
+			handleMove(m)
 		}
+	}
+}
+
+func handleMove(m Message) {
+	g, ok := store.GetGame(m.GameID)
+	if !ok || g.Winner != 0 {
+		return
+	}
+
+	if m.Username != g.CurrentPlayerUsername() {
+		return
+	}
+
+	okMove, row := g.DropDisc(m.Column)
+	if !okMove {
+		return
+	}
+
+	g.CheckWinner(row, m.Column)
+	broadcastState(m.GameID, g)
+
+	if g.Winner != 0 {
+		updateLeaderboard(g)
+		return
+	}
+
+	if g.Player2 == "BOT" && g.Turn == 2 {
+		time.AfterFunc(500*time.Millisecond, func() {
+			handleBotMove(m.GameID)
+		})
+	}
+}
+
+func handleBotMove(gameID string) {
+	g, ok := store.GetGame(gameID)
+	if !ok || g.Winner != 0 || g.Turn != 2 {
+		return
+	}
+
+	col := g.BotMove()
+	okMove, row := g.DropDisc(col)
+	if !okMove {
+		return
+	}
+
+	g.CheckWinner(row, col)
+	broadcastState(gameID, g)
+
+	if g.Winner != 0 {
+		updateLeaderboard(g)
+	}
+}
+
+func broadcastState(gameID string, g *game.Game) {
+	state := StateMessage{
+		Type:   "STATE",
+		Board:  g.Board,
+		Turn:   g.Turn,
+		Winner: g.Winner,
+	}
+
+	for _, c := range store.GetConns(gameID) {
+		_ = c.WriteJSON(state)
+	}
+}
+
+func updateLeaderboard(g *game.Game) {
+	var winner string
+	if g.Winner == 1 {
+		winner = g.Player1
+	} else if g.Winner == 2 {
+		winner = g.Player2
+	}
+
+	if winner != "" && winner != "BOT" {
+		_ = store.AddWin(winner)
 	}
 }

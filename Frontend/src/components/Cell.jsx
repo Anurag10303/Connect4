@@ -6,25 +6,15 @@ export default function Cell({
   onMouseLeave,
   preview,
 }) {
-  let bg = "#f5f5f5";
-  let text = "";
+  let discColor = "#e0e0e0"; // empty hole
 
-  // committed moves
-  if (value === 1) {
-    bg = "#e53935"; // red
-    text = "X";
-  } else if (value === 2) {
-    bg = "#fbc02d"; // yellow
-    text = "O";
-  }
+  if (value === 1) discColor = "#e53935"; // red
+  if (value === 2) discColor = "#fbc02d"; // yellow
 
-  // hover preview (ghost disc)
+  // hover preview
   if (value === 0 && preview) {
-    bg =
-      preview === 1
-        ? "rgba(229,57,53,0.4)"
-        : "rgba(251,192,45,0.4)";
-    text = preview === 1 ? "X" : "O";
+    discColor =
+      preview === 1 ? "rgba(229,57,53,0.45)" : "rgba(251,192,45,0.45)";
   }
 
   return (
@@ -33,21 +23,27 @@ export default function Cell({
       onMouseEnter={clickable ? onMouseEnter : undefined}
       onMouseLeave={clickable ? onMouseLeave : undefined}
       style={{
-        width: 56,
-        height: 56,
-        border: "2px solid #333",
-        background: bg,
-        cursor: clickable ? "pointer" : "not-allowed",
+        width: 64,
+        height: 64,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 26,
-        fontWeight: "bold",
-        color: "#222",
-        userSelect: "none",
+        cursor: clickable ? "pointer" : "default",
       }}
     >
-      {text}
+      <div
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: "50%",
+          background: discColor,
+          boxShadow:
+            value !== 0
+              ? "inset 0 0 6px rgba(0,0,0,0.35)"
+              : "inset 0 0 4px rgba(0,0,0,0.2)",
+          transition: "background 0.2s ease",
+        }}
+      />
     </div>
   );
 }

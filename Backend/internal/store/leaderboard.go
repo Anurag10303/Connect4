@@ -1,26 +1,35 @@
 package store
 
-import "sync"
+// Increment win count atomically
+func AddWin(username string) error {
+	_, err := DB.Exec(`
+		INSERT INTO leaderboard (username, wins)
+		VALUES ($1, 1)
+		ON CONFLICT (username)
+		DO UPDATE SET wins = leaderboard.wins + 1
+	`, username)
 
-var (
-	leaderboardMu sync.Mutex
-	leaderboard   = make(map[string]int)
-)
-
-func AddWin(username string) {
-	leaderboardMu.Lock()
-	defer leaderboardMu.Unlock()
-	leaderboard[username]++
+	return err
 }
 
-func GetLeaderboard() map[string]int {
-	leaderboardMu.Lock()
-	defer leaderboardMu.Unlock()
-
-	// return a copy (important)
-	copy := make(map[string]int)
-	for k, v := range leaderboard {
-		copy[k] = v
+// Fetch leaderboard
+func GetLeaderboard() (map[string]int, error) {
+	rows, err := DB.Query(`SELECT username, wins FROM leaderboard`)
+	if err != nil {
+		return nil, err
 	}
-	return copy
+	defer rows.Close()
+
+	result := make(map[string]int)
+
+	for rows.Next() {
+		var username string
+		var wins int
+		if err := rows.Scan(&username, &wins); err != nil {
+			return nil, err
+		}
+		result[username] = wins
+	}
+
+	return result, nil
 }

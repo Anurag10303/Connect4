@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createEmptyBoard } from "../utils/Board.js";
 
 export function useGameSocket() {
   const [ws, setWs] = useState(null);
   const [username, setUsername] = useState(null);
   const [playerNo, setPlayerNo] = useState(null);
+  const playerNoRef = useRef(null);
   const [gameId, setGameId] = useState(null);
   const [board, setBoard] = useState(createEmptyBoard());
   const [turn, setTurn] = useState(null);
   const [winner, setWinner] = useState(null);
   const [status, setStatus] = useState("Not connected");
+  const [leaderboard, setLeaderboard] = useState({});
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/leaderboard");
+      const data = await res.json();
+      setLeaderboard(data);
+    } catch (err) {
+      console.error("Leaderboard fetch failed", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
 
   const connect = (name) => {
     const socket = new WebSocket("ws://localhost:8080/ws");
@@ -22,19 +38,15 @@ export function useGameSocket() {
 
     socket.onmessage = (e) => {
       const msg = JSON.parse(e.data);
-      console.log("FROM SERVER:", msg);
 
       if (msg.type === "START") {
         setGameId(msg.gameId);
         setBoard(msg.board);
         setTurn(msg.turn);
-        setPlayerNo(msg.playerNo); // 🔑 CRITICAL
+        setPlayerNo(msg.playerNo);
+        playerNoRef.current = msg.playerNo;
         setWinner(null);
-        setStatus(
-          msg.turn === msg.playerNo
-            ? "Your turn"
-            : "Opponent's turn"
-        );
+        setStatus(msg.turn === msg.playerNo ? "Your turn" : "Opponent’s turn");
       }
 
       if (msg.type === "STATE") {
@@ -43,16 +55,15 @@ export function useGameSocket() {
         setWinner(msg.winner);
 
         if (msg.winner) {
+          fetchLeaderboard();
           setStatus(
-            msg.winner === playerNo
-              ? "You won!"
-              : "You lost!"
+            msg.winner === playerNoRef.current
+              ? "🎉 Game Over — You Won!"
+              : "💀 Game Over — You Lost",
           );
         } else {
           setStatus(
-            msg.turn === playerNo
-              ? "Your turn"
-              : "Opponent's turn"
+            msg.turn === playerNoRef.current ? "Your turn" : "Opponent’s turn",
           );
         }
       }
@@ -66,12 +77,8 @@ export function useGameSocket() {
   };
 
   const makeMove = (column) => {
-    // 🔒 HARD GUARDS
     if (!ws || !gameId || winner) return;
-    if (!username) return;
-    if (turn !== playerNo) return; // 🔑 PREVENT ILLEGAL MOVES
-
-    console.log("SENDING MOVE:", column);
+    if (turn !== playerNoRef.current) return;
 
     ws.send(
       JSON.stringify({
@@ -79,7 +86,7 @@ export function useGameSocket() {
         gameId,
         column,
         username,
-      })
+      }),
     );
   };
 
@@ -91,7 +98,8 @@ export function useGameSocket() {
     gameId,
     username,
     playerNo,
-    isMyTurn: turn === playerNo, // 🔑 EXPOSE THIS
+    isMyTurn: turn === playerNo,
+    leaderboard,
     connect,
     makeMove,
   };
