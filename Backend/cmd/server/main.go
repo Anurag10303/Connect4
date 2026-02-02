@@ -4,19 +4,28 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"connect4/internal/store"
 	"connect4/internal/websocket"
 )
 
 func main() {
-	store.InitDB() // 🔑 REQUIRED
+	// 🔑 Init DB (Postgres)
+	store.InitDB()
 
+	// Routes
 	http.HandleFunc("/ws", websocket.HandleWS)
 	http.HandleFunc("/leaderboard", leaderboardHandler)
 
-	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// 🔑 Use PORT from env (Railway requirement)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // local fallback
+	}
+
+	log.Println("Server running on :" + port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func leaderboardHandler(w http.ResponseWriter, r *http.Request) {
